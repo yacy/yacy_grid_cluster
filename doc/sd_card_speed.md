@@ -23,5 +23,6 @@ dd if=~/test.tmp of=/dev/null bs=500K count=1024
 |SD Card|Write Speed<br/>Factory Declaration<br/>MB/s|Read Speed<br/>Factory Declaration<br/>MB/s|Sequential Write Test<br/>MB/s|Sequential Read Test<br/>MB/s|Sequential Write Test<br/>(Overclocked)<br/>MB/s|Sequential Read Test<br/>(Overclocked)<br/>MB/s|
 |---|---|---|---|---|---|---|
 |SanDisk Extreme 128GB UHS-I U3 A1 V30|90|100|22.5|23.4|26.5|38.3|
+|SanDisk Extreme Pro 64GB UHS-I U3 A2 V30|90|170|26.6|23.6|25.9|38.5|
 |SanDisk 16GB C2|   |   |6.5|18.2|7.5|30.3|
 |   |   |   |   |   |   |   |
