@@ -36,13 +36,14 @@ You can now log into your Raspberry Pi with the command
 ```
 sshpass -p raspberry ssh pi@raspberrypi.local
 ```
+
 We do so for node `node00` and configure passwordless access for all other nodes in the cluster.
 We create a key pair on `node00` and distribute that key to all other cluster nodes.
 Create the key pair with
 ```
 ssh-keygen
 ```
-The created key can be copied to another node `nodeXX` with
+The created key could be copied to another node `nodeXX` with
 ```
 cat ~/.ssh/id_rsa.pub | ssh pi@nodeXX.local 'mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys'
 ```
@@ -51,6 +52,26 @@ Because we want to do this passwordless, call
 cat ~/.ssh/id_rsa.pub | sshpass -p raspberry ssh pi@nodeXX.local 'mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys'
 ```
 This must be done with all nodes.
+
+We will now change the host name from `raspberrypi` to `node00`:
+```
+ssh pi@raspberrypi.local 'echo node00 | sudo tee /etc/hostname'
+ssh pi@raspberrypi.local 'shutdown -r now'
+```
+or without using the public key with the default password:
+```
+sshpass -p raspberry ssh pi@raspberrypi.local 'echo node00 | sudo tee /etc/hostname'
+```
+If you repeat this with several nodes, you will probably get a
+```
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+```
+This is correct and you must ignore host identification:
+```
+sshpass -p raspberry ssh -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null pi@raspberrypi.local 'echo node00 | sudo tee /etc/hostname'
+```
 
 ## Node System Configuration
 On every node we want some performance tweaks. Here i.e. we switch off swappiness:
