@@ -1,4 +1,6 @@
-## Node System Configuration
+# Node Configuration
+
+## Node Image Preparation
 We want a basic system configuration for the grid node elements. What we want:
 * applying SD card overclocking  
 To do this, just add the line `dtoverlay=sdhost,overclock_50=100` to `/boot/config.txt`
@@ -50,3 +52,9 @@ cat ~/.ssh/id_rsa.pub | sshpass -p raspberry ssh pi@nodeXX.local 'mkdir -p ~/.ss
 ```
 This must be done with all nodes.
 
+## Node System Configuration
+On every node we want some performance tweaks. Here i.e. we switch off swappiness:
+```
+sudo systemctl disable dphys-swapfile
+sudo update-rc.d dphys-swapfile remove
+```
