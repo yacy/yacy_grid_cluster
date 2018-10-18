@@ -82,10 +82,13 @@ So the whole process to rename the hostname is:
 * shut down the host: `ssh pi@raspberrypi.local 'sudo shutdown -h now'`
 * re-boot and test the host name: `ssh pi@nodeXX.local`
 
-
 ## Node System Configuration
 On every node we want some performance tweaks. Here i.e. we switch off swappiness:
 ```
 sudo systemctl disable dphys-swapfile
 sudo update-rc.d dphys-swapfile remove
+```
+Install base libraries for each peer:
+```
+ssh -o "StrictHostKeyChecking no" pi@nodeXX.local 'sudo apt-get -y install git oracle-java8-jdk gradle'
 ```
