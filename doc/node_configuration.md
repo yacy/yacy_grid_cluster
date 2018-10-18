@@ -73,6 +73,16 @@ This is correct and you must ignore host identification:
 sshpass -p raspberry ssh -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null pi@raspberrypi.local 'echo node00 | sudo tee /etc/hostname'
 ```
 
+So the whole process to rename the hostname is:
+* delete known hosts `rm .ssh/known_hosts`
+* wait until host is up: `ping raspberrypi.local`
+* boot up and add your public key: `cat ~/.ssh/id_rsa.pub | sshpass -p raspberry ssh -oStrictHostKeyChecking=no pi@raspberrypi.local 'mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys'`
+* verify that the key works: `ssh pi@raspberrypi.local`
+* write the host name: `ssh pi@raspberrypi.local 'echo nodeXX | sudo tee /etc/hostname'`
+* shut down the host: `ssh pi@raspberrypi.local 'sudo shutdown -h now'`
+* re-boot and test the host name: `ssh pi@nodeXX.local`
+
+
 ## Node System Configuration
 On every node we want some performance tweaks. Here i.e. we switch off swappiness:
 ```
