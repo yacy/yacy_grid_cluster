@@ -4,6 +4,7 @@ import sys, getopt, json, os, datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qsl
 
+
 # tools to extract metrics
 def getHostname():
     return os.popen("cat /etc/hostname").readline().strip()
@@ -35,8 +36,11 @@ def getCPUfreq():
     try:
         return float(os.popen("[ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq ] && cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq").readline().strip()) / 1000.0
     except Exception as e:
-        return 0.0
-    
+        try:
+            return float(os.popen("lscpu | grep MHz | awk '{print $3}'").readline().strip())
+        except Exception as e:
+            return 0.0
+
 def getCPUcount():
     return int(os.popen("nproc").readline().strip())
 
@@ -128,4 +132,3 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
