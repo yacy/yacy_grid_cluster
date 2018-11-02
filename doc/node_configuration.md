@@ -79,7 +79,7 @@ So the whole process to rename the hostname is:
 * boot up and add your public key: `cat ~/.ssh/id_rsa.pub | sshpass -p raspberry ssh -oStrictHostKeyChecking=no pi@raspberrypi.local 'mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys'`
 * verify that the key works: `ssh pi@raspberrypi.local`
 * write the host name: `ssh pi@raspberrypi.local 'echo nodeXX | sudo tee /etc/hostname'`
-* shut down the host: `ssh pi@raspberrypi.local 'sudo shutdown -h now'`
+* shut down the host: `ssh pi@raspberrypi.local 'sudo shutdown -r now'`
 * re-boot and test the host name: `ssh pi@nodeXX.local`
 
 
