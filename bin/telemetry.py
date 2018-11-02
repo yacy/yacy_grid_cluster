@@ -27,17 +27,19 @@ def getRAMinfo():
     p.readline()
     a = p.readline().split()[1:]
     # free is not available on mac
-    return a if len(a) >= 6 else [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    return a if len(a) >= 6 else [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
 def getCPUuse():
     #return float(os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip().replace(",","."))
-    #return float(os.popen("grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'").readline().strip().replace(",","."))    print("got 5")
-    return float(os.popen("mpstat | grep -A 5 \"%idle\" | tail -n 1 | awk -F \" \" '{print 100 -  $ 12}'a").readline().strip().replace(",","."))
+    #return float(os.popen("grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'").readline().strip().replace(",",".")) 
+    try:
+        return float(os.popen("mpstat | grep -A 5 \"%idle\" | tail -n 1 | awk -F \" \" '{print 100 -  $ 12}'a").readline().strip().replace(",","."))
+    except Exception as e:
+        return float(os.popen("ps -A -o %cpu | awk '{s+=$1} END {print s}'").readline().strip())
 
 def getCPUload():
     #return float(os.popen("top -n1 | head -1 | awk -F 'load average' '{print $2}' | awk '{print $2}'").readline().replace(",","").strip())
     return os.popen("uptime | awk -F 'load average' '{print $2}' | awk '{print $2,$3,$4}'").readline().strip().split()
-    #return float(os.popen("uptime | awk -F 'load average' '{print $2}' | awk '{print $2}'").readline().replace(",","").strip())
 
 def getCPUfreq():
     try:
@@ -50,7 +52,10 @@ def getCPUfreq():
             return 0.0
 
 def getCPUcount():
-    return int(os.popen("nproc").readline().strip())
+    try:
+        return int(os.popen("nproc").readline().strip())
+    except Exception as e:
+        return int(os.popen("sysctl -n hw.ncpu").readline().strip())
 
 def getDiskSpace():
     p = os.popen("df -h /")
@@ -71,7 +76,6 @@ def parseXB2GB(space):
 def getMetricsJson(pretty):
     cpufreq = getCPUfreq() # do this first to prevent that other tasks cause overclocking
     cpuload = getCPUload()
-    print(cpuload)
     RAM_stats = getRAMinfo()
     DISK_stats = getDiskSpace()
     ram_total = float(RAM_stats[0])
