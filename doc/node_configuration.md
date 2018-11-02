@@ -2,15 +2,22 @@
 
 ## Node Image Preparation
 We want a basic system configuration for the grid node elements. What we want:
-* applying SD card overclocking  
-To do this, just add the line `dtoverlay=sdhost,overclock_50=100` to `/boot/config.txt`
 * start up an ssh daemon  
 you must add an empty file in `boot/ssh`
+* applying SD card overclocking  
+To do this, just add the line `dtoverlay=sdhost,overclock_50=100` to `/boot/config.txt`
+* reduce the GPU memory because we don't need this for headless operation.
+To do this, we add `gpu_mem=16` to `/boot/config.txt`
+* reduce the power consumption while the device does nothing. The RPi has a auto-overclocking technology which rises the 
+clock speed up to 1400 MHz, but the lower speed during low load is 600 MHz. We want to reduce this furter, to do so,
+we add `arm_freq_min=300` to `/boot/config.txt`
 
-Both can be done with commands (like):
+All that can be done with commands (like):
 ```
 touch /Volumes/boot/ssh
 echo "dtoverlay=sdhost,overclock_50=100" | cat >> /Volumes/boot/config.txt
+echo "gpu_mem=16" | cat >> /Volumes/boot/config.txt
+echo "arm_freq_min=300" | cat >> /Volumes/boot/config.txt
 ```
 ..if the sd card is mounted on /Volumes/boot
 
@@ -82,10 +89,13 @@ So the whole process to rename the hostname is:
 * shut down the host: `ssh pi@raspberrypi.local 'sudo shutdown -r now'`
 * re-boot and test the host name: `ssh pi@nodeXX.local`
 
-
 ## Node System Configuration
 On every node we want some performance tweaks. Here i.e. we switch off swappiness:
 ```
 sudo systemctl disable dphys-swapfile
 sudo update-rc.d dphys-swapfile remove
+```
+Install base libraries for each peer:
+```
+ssh -o "StrictHostKeyChecking no" pi@nodeXX.local 'sudo apt-get -y install git oracle-java8-jdk gradle'
 ```
