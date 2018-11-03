@@ -1,12 +1,16 @@
 #!/usr/bin/python3
 
 # packages needed:
-# pip3 install python-daemon
+# sudo pip3 install flask flask-cors psutil
 
-import sys, getopt, json, os, datetime#, daemon
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, parse_qsl
+# to run this as systemd service, copy the file telemetry.service
+# into /lib/systemd/system/telemetry.service and do
+# sudo systemctl daemon-reload
+# sudo systemctl enable telemetry.service
 
+import sys, getopt, json, os, datetime, psutil
+from flask import Flask, request, jsonify, abort
+from flask_cors import CORS, cross_origin
 
 # tools to extract metrics
 def getHostname():
@@ -73,7 +77,7 @@ def parseXB2GB(space):
     if (space.endswith("K")): return float(space[:-1]) / 1024.0 / 1024.0
     return 0.0
         
-def getMetricsJson(pretty):
+def getMetricsJson():
     cpufreq = getCPUfreq() # do this first to prevent that other tasks cause overclocking
     cpuload = getCPUload()
     RAM_stats = getRAMinfo()
@@ -81,7 +85,7 @@ def getMetricsJson(pretty):
     ram_total = float(RAM_stats[0])
     ram_used = float(RAM_stats[1])
     ram_available = float(RAM_stats[5])
-    j = {
+    return {
         "timestamp":datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"), # we are using the "date_hour_minute_second" or "strict_date_hour_minute_second" format of elasticsearch as fornat for the date: yyyy-MM-dd'T'HH:mm:ss.
         "host_name": getHostname(),
         "host_ip": getHostip(),
@@ -104,32 +108,16 @@ def getMetricsJson(pretty):
         "disk_free_gb": parseXB2GB(DISK_stats[2]),
         "disk_percent": int(DISK_stats[3].replace("%",""))
     }
-    if pretty:
-        return json.dumps(j, sort_keys=True, indent=2)
-    else:
-        return json.dumps(j, sort_keys=True)
-        
-# the http server
-class Server(BaseHTTPRequestHandler):
-    def do_GET(self):
-        print(self.path)
-        pr = urlparse(self.path)
-        path = pr.path
-        query = dict(parse_qsl(pr.query))
-        pretty = "pretty" in query
-        if path.endswith("/status.json"):
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(getMetricsJson(pretty).encode())
-        else:
-            self.send_response(404)
-            self.end_headers()
+    
+app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+methods = (['GET'])
 
-def run(port = 5055):
-    httpd = HTTPServer(("", port), Server)
-    #print("Starting httpd on port %d..." % port)
-    httpd.serve_forever()
+@app.route('/status.json', methods=methods)
+@cross_origin()
+def status():
+    return jsonify(getMetricsJson())
 
 def main(argv):
     try:
@@ -140,14 +128,11 @@ def main(argv):
 
     for opt, arg in opts:
         if opt == '-p':
-            print(getMetricsJson(False))
+            print(json.dumps(getMetricsJson(), sort_keys=True))
         elif opt == '-P':
-            print(getMetricsJson(True))
+            print(json.dumps(getMetricsJson(), sort_keys=True, indent=2))
         elif opt == '-d':
-            run()
-#        elif opt == '-D':
-#            with daemon.DaemonContext():
-#                run()
+            app.run(host="0.0.0.0", port=5055, debug=False)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

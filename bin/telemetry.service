@@ -1,0 +1,13 @@
+[Unit]
+Description=Telemetry Service
+After=multi-user.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/python3 /home/pi/git/yacy_grid_cluster/bin/telemetry.py -d 2>&1 /var/log/telemetry.log
+TimeoutSec=600
+Restart=on-failure
+RestartSec=5s
