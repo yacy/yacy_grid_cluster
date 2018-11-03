@@ -14,7 +14,10 @@ from flask_cors import CORS, cross_origin
 
 # tools to extract metrics
 def getHostname():
-    return os.popen("cat /etc/hostname").readline().strip()
+    hostname = os.popen("cat /etc/hostname").readline().strip()
+    if (hostname == ""):
+        hostname = os.popen("hostname").readline().strip()
+    return hostname
 
 def getHostip():
     return os.popen("ifconfig | grep inet | awk '/broadcast/ {print $2}'").readline().strip()
@@ -31,7 +34,12 @@ def getRAMinfo():
     p.readline()
     a = p.readline().split()[1:]
     # free is not available on mac
-    return a if len(a) >= 6 else [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    if len(a) >= 6:
+        return a
+    else:
+        vm = psutil.virtual_memory()
+        return [vm.total / 1024, vm.used / 1024, vm.free / 1024, 0, 0, vm.available / 1024]
+        # total_kb, used_kb, free_kb, shared_kb, cache_kb, available_kb        
 
 def getCPUuse():
     #return float(os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip().replace(",","."))
@@ -39,7 +47,7 @@ def getCPUuse():
     try:
         return float(os.popen("mpstat | grep -A 5 \"%idle\" | tail -n 1 | awk -F \" \" '{print 100 -  $ 12}'a").readline().strip().replace(",","."))
     except Exception as e:
-        return float(os.popen("ps -A -o %cpu | awk '{s+=$1} END {print s}'").readline().strip())
+        return float(os.popen("ps -A -o %cpu | awk '{s+=$1} END {print s}'").readline().strip().replace(",","."))
 
 def getCPUload():
     #return float(os.popen("top -n1 | head -1 | awk -F 'load average' '{print $2}' | awk '{print $2}'").readline().replace(",","").strip())
@@ -53,7 +61,7 @@ def getCPUfreq():
         try:
             return float(os.popen("lscpu | grep MHz | awk '{print $3}'").readline().strip())
         except Exception as e:
-            return 0.0
+            return psutil.cpu_freq().current
 
 def getCPUcount():
     try:
@@ -72,9 +80,15 @@ def getDiskSpace():
 
 def parseXB2GB(space):
     if (space.endswith("T")): return float(space[:-1]) * 1024.0
+    if (space.endswith("Ti")): return float(space[:-2]) * 1024.0
     if (space.endswith("G")): return float(space[:-1])
+    if (space.endswith("Gi")): return float(space[:-2])
     if (space.endswith("M")): return float(space[:-1]) / 1024.0
+    if (space.endswith("Mi")): return float(space[:-2]) / 1024.0
     if (space.endswith("K")): return float(space[:-1]) / 1024.0 / 1024.0
+    if (space.endswith("Ki")): return float(space[:-2]) / 1024.0 / 1024.0
+    if (space.endswith("B")): return float(space[:-1]) / 1024.0 / 1024.0 / 1024.0
+    if (space.endswith("Bi")): return float(space[:-2]) / 1024.0 / 1024.0 / 1024.0
     return 0.0
         
 def getMetricsJson():
@@ -99,8 +113,6 @@ def getMetricsJson():
         "ram_total_gb": round(ram_total / 1048576.0, 3),
         "ram_used_gb": round(ram_used / 1048576.0, 3),
         "ram_free_gb": round(float(RAM_stats[2]) / 1048576.0, 3),
-        "ram_shared_gb": round(float(RAM_stats[3]) / 1048576.0, 3),
-        "ram_cache_gb": round(float(RAM_stats[4]) / 1048576.0, 3),
         "ram_available_gb": round(ram_available / 1048576.0, 3),
         "ram_percent": int(100.0 * (ram_total - ram_available) / ram_total),
         "disk_total_gb": parseXB2GB(DISK_stats[0]),
