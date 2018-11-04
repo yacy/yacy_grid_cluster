@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!-- css framework taken from https://github.com/pratikborsadiya/vali-admin -->
+  <head>
+    <title>Telemetry</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Main CSS-->
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <!-- Font-icon css-->
+    <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+  </head>
+  <body class="app sidebar-mini rtl">
+    <!-- Navbar-->
+    <header class="app-header"><a class="app-header__logo" href="index.html">YaCy Grid</a>
+      <!-- Sidebar toggle button--><a class="app-sidebar__toggle" href="#" data-toggle="sidebar" aria-label="Hide Sidebar"></a>
+    </header>
+    <!-- Sidebar menu-->
+    <div class="app-sidebar__overlay" data-toggle="sidebar"></div>
+    <aside class="app-sidebar">
+      <ul class="app-menu">
+        <li><a class="app-menu__item" href="index.html"><i class="app-menu__icon fa fa-dashboard"></i><span class="app-menu__label">Telemetry</span></a></li>
+      </ul>
+    </aside>
+    <main class="app-content">
+      <div class="app-title">
+        <div>
+          <h1><i class="fa fa-th-list"></i> Telemetry</h1>
+          <p>Heartbeat information about YaCy Peers in the YaCy Grid</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="tile">
+            <div class="tile-body">
+              <table class="table table-bordered table-sm" id="vue_telemetry">
+                <thead>
+                  <tr>
+		    <th rowspan="2">Time</th>
+		    <th colspan="2" class="table-warning">Host</th>
+		    <th colspan="7" class="table-danger">CPU</th>
+		    <th colspan="4" class="table-secondary">Disk</th>
+		    <th colspan="5" class="table-primary">RAM</th>
+		  </tr>
+                  <tr>
+		    <th class="table-warning">Name</th>
+		    <th class="table-warning">IP</th>
+		    <th class="table-danger">Count</th>
+		    <th class="table-danger">MHz</th>
+		    <th class="table-danger">&#x2103;</th>
+		    <th class="table-danger">Load 1&nbsp;min</th>
+		    <th class="table-danger">Load 5&nbsp;min</th>
+		    <th class="table-danger">Load 15&nbsp;min</th>
+		    <th class="table-danger">%</th>
+		    <th class="table-secondary">Total GB</th>
+		    <th class="table-secondary">Free GB</th>
+		    <th class="table-secondary">Used GB</th>
+		    <th class="table-secondary">%</td>
+                    <th class="table-primary">Total GB</th>
+                    <th class="table-primary">Free GB</th>
+                    <th class="table-primary">Avail GB</th>
+                    <th class="table-primary">Used GB</th>
+                    <th class="table-primary">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+		  <tr v-for='post in posts'>
+		    <td>{{post.timestamp}}</td>
+		    <td>{{post.host_name}}</td>
+		    <td>{{post.host_ip}}</td>
+		    <td>{{post.cpu_count}}</td>
+		    <td>{{post.cpu_freq_mhz}}</td>
+		    <td>{{post.cpu_temp_celsius}}</td>
+		    <td>{{post.cpu_load_1}}</td>
+		    <td>{{post.cpu_load_5}}</td>
+		    <td>{{post.cpu_load_15}}</td>
+		    <td>{{post.cpu_usage_percent}}</td>
+		    <td>{{post.disk_total_gb}}</td>
+		    <td>{{post.disk_free_gb}}</td>
+		    <td>{{post.disk_used_gb}}</td>
+		    <td>{{post.disk_percent}}%</td>
+		    <td>{{post.ram_total_gb}}</td>
+		    <td>{{post.ram_free_gb}}</td>
+		    <td>{{post.ram_available_gb}}</td>
+		    <td>{{post.ram_used_gb}}</td>
+		    <td>{{post.ram_percent}}</td>
+		  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <!-- Essential javascripts for application to work-->
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/main.js"></script>
+    <!-- The javascript plugin to display page loading on top-->
+    <script src="js/plugins/pace.min.js"></script>
+    <!-- Page specific javascripts-->
+    <script type="text/javascript" src="js/plugins/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="js/plugins/dataTables.bootstrap.min.js"></script>
+    <script src=js/vue.js></script>
+    <script>
+      var vue_telemetry = new Vue({
+        el: '#vue_telemetry',
+        data: {
+            posts: []
+        },
+        created() {
+            fetch('http://raspberrypi.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://raspberrypi1.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+        },
+        mounted() {
+          setTimeout(function () {
+            $('#vue_telemetry').DataTable();
+          }, 2000);
+        }
+      });
+    </script>
+    <!-- Data table plugin-->
+    <!--<script type="text/javascript">$('#vue_telemetry').DataTable();</script>-->
+  </body>
+</html>
