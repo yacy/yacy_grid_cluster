@@ -1,16 +1,23 @@
 #!/usr/bin/python3
 
 # packages needed:
-# pip3 install python-daemon
+# sudo pip3 install flask flask-cors psutil
 
-import sys, getopt, json, os, datetime#, daemon
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, parse_qsl
+# to run this as systemd service, copy the file telemetry.service
+# into /lib/systemd/system/telemetry.service and do
+# sudo systemctl daemon-reload
+# sudo systemctl enable telemetry.service
 
+import sys, getopt, json, os, datetime, psutil
+from flask import Flask, request, jsonify, abort
+from flask_cors import CORS, cross_origin
 
 # tools to extract metrics
 def getHostname():
-    return os.popen("cat /etc/hostname").readline().strip()
+    hostname = os.popen("cat /etc/hostname").readline().strip()
+    if (hostname == ""):
+        hostname = os.popen("hostname").readline().strip()
+    return hostname
 
 def getHostip():
     return os.popen("ifconfig | grep inet | awk '/broadcast/ {print $2}'").readline().strip()
@@ -27,7 +34,12 @@ def getRAMinfo():
     p.readline()
     a = p.readline().split()[1:]
     # free is not available on mac
-    return a if len(a) >= 6 else [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    if len(a) >= 6:
+        return a
+    else:
+        vm = psutil.virtual_memory()
+        return [vm.total / 1024, vm.used / 1024, vm.free / 1024, 0, 0, vm.available / 1024]
+        # total_kb, used_kb, free_kb, shared_kb, cache_kb, available_kb        
 
 def getCPUuse():
     #return float(os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip().replace(",","."))
@@ -35,7 +47,7 @@ def getCPUuse():
     try:
         return float(os.popen("mpstat | grep -A 5 \"%idle\" | tail -n 1 | awk -F \" \" '{print 100 -  $ 12}'a").readline().strip().replace(",","."))
     except Exception as e:
-        return float(os.popen("ps -A -o %cpu | awk '{s+=$1} END {print s}'").readline().strip())
+        return float(os.popen("ps -A -o %cpu | awk '{s+=$1} END {print s}'").readline().strip().replace(",","."))
 
 def getCPUload():
     #return float(os.popen("top -n1 | head -1 | awk -F 'load average' '{print $2}' | awk '{print $2}'").readline().replace(",","").strip())
@@ -49,7 +61,7 @@ def getCPUfreq():
         try:
             return float(os.popen("lscpu | grep MHz | awk '{print $3}'").readline().strip())
         except Exception as e:
-            return 0.0
+            return psutil.cpu_freq().current
 
 def getCPUcount():
     try:
@@ -68,12 +80,18 @@ def getDiskSpace():
 
 def parseXB2GB(space):
     if (space.endswith("T")): return float(space[:-1]) * 1024.0
+    if (space.endswith("Ti")): return float(space[:-2]) * 1024.0
     if (space.endswith("G")): return float(space[:-1])
+    if (space.endswith("Gi")): return float(space[:-2])
     if (space.endswith("M")): return float(space[:-1]) / 1024.0
+    if (space.endswith("Mi")): return float(space[:-2]) / 1024.0
     if (space.endswith("K")): return float(space[:-1]) / 1024.0 / 1024.0
+    if (space.endswith("Ki")): return float(space[:-2]) / 1024.0 / 1024.0
+    if (space.endswith("B")): return float(space[:-1]) / 1024.0 / 1024.0 / 1024.0
+    if (space.endswith("Bi")): return float(space[:-2]) / 1024.0 / 1024.0 / 1024.0
     return 0.0
         
-def getMetricsJson(pretty):
+def getMetricsJson():
     cpufreq = getCPUfreq() # do this first to prevent that other tasks cause overclocking
     cpuload = getCPUload()
     RAM_stats = getRAMinfo()
@@ -81,7 +99,7 @@ def getMetricsJson(pretty):
     ram_total = float(RAM_stats[0])
     ram_used = float(RAM_stats[1])
     ram_available = float(RAM_stats[5])
-    j = {
+    return {
         "timestamp":datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"), # we are using the "date_hour_minute_second" or "strict_date_hour_minute_second" format of elasticsearch as fornat for the date: yyyy-MM-dd'T'HH:mm:ss.
         "host_name": getHostname(),
         "host_ip": getHostip(),
@@ -95,8 +113,6 @@ def getMetricsJson(pretty):
         "ram_total_gb": round(ram_total / 1048576.0, 3),
         "ram_used_gb": round(ram_used / 1048576.0, 3),
         "ram_free_gb": round(float(RAM_stats[2]) / 1048576.0, 3),
-        "ram_shared_gb": round(float(RAM_stats[3]) / 1048576.0, 3),
-        "ram_cache_gb": round(float(RAM_stats[4]) / 1048576.0, 3),
         "ram_available_gb": round(ram_available / 1048576.0, 3),
         "ram_percent": int(100.0 * (ram_total - ram_available) / ram_total),
         "disk_total_gb": parseXB2GB(DISK_stats[0]),
@@ -104,32 +120,16 @@ def getMetricsJson(pretty):
         "disk_free_gb": parseXB2GB(DISK_stats[2]),
         "disk_percent": int(DISK_stats[3].replace("%",""))
     }
-    if pretty:
-        return json.dumps(j, sort_keys=True, indent=2)
-    else:
-        return json.dumps(j, sort_keys=True)
-        
-# the http server
-class Server(BaseHTTPRequestHandler):
-    def do_GET(self):
-        print(self.path)
-        pr = urlparse(self.path)
-        path = pr.path
-        query = dict(parse_qsl(pr.query))
-        pretty = "pretty" in query
-        if path.endswith("/status.json"):
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(getMetricsJson(pretty).encode())
-        else:
-            self.send_response(404)
-            self.end_headers()
+    
+app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+methods = (['GET'])
 
-def run(port = 5055):
-    httpd = HTTPServer(("", port), Server)
-    #print("Starting httpd on port %d..." % port)
-    httpd.serve_forever()
+@app.route('/status.json', methods=methods)
+@cross_origin()
+def status():
+    return jsonify(getMetricsJson())
 
 def main(argv):
     try:
@@ -140,14 +140,11 @@ def main(argv):
 
     for opt, arg in opts:
         if opt == '-p':
-            print(getMetricsJson(False))
+            print(json.dumps(getMetricsJson(), sort_keys=True))
         elif opt == '-P':
-            print(getMetricsJson(True))
+            print(json.dumps(getMetricsJson(), sort_keys=True, indent=2))
         elif opt == '-d':
-            run()
-#        elif opt == '-D':
-#            with daemon.DaemonContext():
-#                run()
+            app.run(host="0.0.0.0", port=5055, debug=False)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
