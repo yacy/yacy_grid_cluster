@@ -26,6 +26,6 @@ dd if=~/test.tmp of=/dev/null bs=500K count=1024
 |SanDisk Extreme 128GB UHS-I U3 A1 V30|90|100|22.5|23.4|26.5|38.3|
 |SanDisk Extreme Pro 64GB UHS-I U3 A2 V30|90|170|26.6|23.6|25.9|38.5|
 |SanDisk Ultra 32GB C10 U1 A1|?|98|20.3|23.6|17.4|38.8|
-|Transcend Premium 16GB C10 U1|12|45|9.8|23.4|11.3|38.0|
-|Intenso 16GB C10|12|20|||||
+|Transcend Premium 32GB C10 U1|?|90|18.5|23.4|13.4|37.4|
+|Transcend Premium 16GB C10 U1|?|90|9.8|23.4|11.3|38.0|
 |SanDisk 16GB C2|?|?|6.5|18.2|7.5|30.3|
