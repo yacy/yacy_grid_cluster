@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 # packages needed:
+# sudo apt-get install python3-pip net-tools sysstat
 # sudo pip3 install flask flask-cors psutil
 
 # to run this as systemd service, copy the file telemetry.service
@@ -20,8 +21,12 @@ def getHostname():
     return hostname
 
 def getHostip():
-    return os.popen("ifconfig | grep inet | awk '/broadcast/ {print $2}'").readline().strip()
-    
+    ip = os.popen("ifconfig | grep inet | awk '/broadcast/ {print $2}'").readline().strip()
+    if ip != "":
+        return ip
+    ip = os.popen("ifconfig | grep inet | awk '/Bcast/ {print $2}'").readline().strip().split(':')[1]
+    return ip
+
 def getCPUtemperature():
     try:
         res = os.popen('[ `which vcgencmd` ] && vcgencmd measure_temp').readline()
@@ -70,25 +75,19 @@ def getCPUcount():
         return int(os.popen("sysctl -n hw.ncpu").readline().strip())
 
 def getDiskSpace():
-    p = os.popen("df -h /")
-    i = 0
-    while 1:
-        i = i +1
-        line = p.readline()
-        if i==2:
-            return(line.split()[1:5])
+    return os.popen("df -h / | tail -1").readline().strip().split()[1:5]
 
 def parseXB2GB(space):
-    if (space.endswith("T")): return float(space[:-1]) * 1024.0
-    if (space.endswith("Ti")): return float(space[:-2]) * 1024.0
-    if (space.endswith("G")): return float(space[:-1])
-    if (space.endswith("Gi")): return float(space[:-2])
-    if (space.endswith("M")): return float(space[:-1]) / 1024.0
-    if (space.endswith("Mi")): return float(space[:-2]) / 1024.0
-    if (space.endswith("K")): return float(space[:-1]) / 1024.0 / 1024.0
-    if (space.endswith("Ki")): return float(space[:-2]) / 1024.0 / 1024.0
-    if (space.endswith("B")): return float(space[:-1]) / 1024.0 / 1024.0 / 1024.0
-    if (space.endswith("Bi")): return float(space[:-2]) / 1024.0 / 1024.0 / 1024.0
+    if (space.endswith("T")): return float(space[:-1].replace(",",".")) * 1024.0
+    if (space.endswith("Ti")): return float(space[:-2].replace(",",".")) * 1024.0
+    if (space.endswith("G")): return float(space[:-1].replace(",","."))
+    if (space.endswith("Gi")): return float(space[:-2].replace(",","."))
+    if (space.endswith("M")): return float(space[:-1].replace(",",".")) / 1024.0
+    if (space.endswith("Mi")): return float(space[:-2].replace(",",".")) / 1024.0
+    if (space.endswith("K")): return float(space[:-1].replace(",",".")) / 1024.0 / 1024.0
+    if (space.endswith("Ki")): return float(space[:-2].replace(",",".")) / 1024.0 / 1024.0
+    if (space.endswith("B")): return float(space[:-1].replace(",",".")) / 1024.0 / 1024.0 / 1024.0
+    if (space.endswith("Bi")): return float(space[:-2].replace(",",".")) / 1024.0 / 1024.0 / 1024.0
     return 0.0
         
 def getMetricsJson():
