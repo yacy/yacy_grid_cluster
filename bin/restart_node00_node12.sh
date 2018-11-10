@@ -1,0 +1,15 @@
+#! /bin/bash
+
+ssh pi@node01.local "sudo shutdown -r now"
+ssh pi@node02.local "sudo shutdown -r now"
+ssh pi@node03.local "sudo shutdown -r now"
+ssh pi@node04.local "sudo shutdown -r now"
+ssh pi@node05.local "sudo shutdown -r now"
+ssh pi@node06.local "sudo shutdown -r now"
+ssh pi@node07.local "sudo shutdown -r now"
+ssh pi@node08.local "sudo shutdown -r now"
+ssh pi@node09.local "sudo shutdown -r now"
+ssh pi@node10.local "sudo shutdown -r now"
+ssh pi@node11.local "sudo shutdown -r now"
+ssh pi@node12.local "sudo shutdown -r now"
+ssh pi@node00.local "sudo shutdown -r now"
