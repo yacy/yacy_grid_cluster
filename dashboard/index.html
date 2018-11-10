@@ -35,7 +35,7 @@
         <div class="col-md-12">
           <div class="tile">
             <div class="tile-body">
-              <table class="table table-bordered table-sm" id="vue_telemetry">
+              <table data-order='[[ 1, "asc" ]]' data-page-length='25' class="table table-bordered table-sm" id="vue_telemetry">
                 <thead>
                   <tr>
 		    <th rowspan="2">Time</th>
@@ -67,7 +67,7 @@
                 </thead>
                 <tbody>
 		  <tr v-for='post in posts'>
-		    <td>{{post.timestamp}}</td>
+		    <td><span class="nowrap">{{post.timestamp}}</span></td>
 		    <td>{{post.host_name}}</td>
 		    <td>{{post.host_ip}}</td>
 		    <td>{{post.cpu_count}}</td>
@@ -112,6 +112,58 @@
             posts: []
         },
         created() {
+            fetch('http://node00.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node01.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node02.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node03.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node04.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node05.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node06.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node07.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node08.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node09.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node10.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node11.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://node12.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
             fetch('http://raspberrypi.local:5055/status.json')
                 .then((response) => {if (response.ok) {return response.json();}})
                 .then((json) => {this.posts.push(json);})
