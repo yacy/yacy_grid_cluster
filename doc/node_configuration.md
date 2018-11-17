@@ -6,6 +6,8 @@ We want a basic system configuration for the grid node elements. What we want:
 you must add an empty file in `boot/ssh`
 * applying SD card overclocking  
 To do this, just add the line `dtoverlay=sdhost,overclock_50=100` to `/boot/config.txt`
+* enable cgroups (which could be used by kubernetes)
+Add the string "cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory" to the file `/boot/cmdline.txt`
 * reduce the GPU memory because we don't need this for headless operation.
 To do this, we add `gpu_mem=16` to `/boot/config.txt`
 * reduce the power consumption while the device does nothing. The RPi has a auto-overclocking technology which rises the 
