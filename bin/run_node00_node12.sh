@@ -1,30 +1,30 @@
 #! /bin/bash
 
-ssh pi@node01.local "$@" 2>&1 > >(sed 's/^/node01: /') &
+ssh -o StrictHostKeyChecking=no pi@node01.local "$@" 2>&1 > >(sed 's/^/node01: /') &
 pids01=$!
-ssh pi@node02.local "$@" 2>&1 > >(sed 's/^/node02: /') &
+ssh -o StrictHostKeyChecking=no pi@node02.local "$@" 2>&1 > >(sed 's/^/node02: /') &
 pids02=$!
-ssh pi@node03.local "$@" 2>&1 > >(sed 's/^/node03: /') &
+ssh -o StrictHostKeyChecking=no pi@node03.local "$@" 2>&1 > >(sed 's/^/node03: /') &
 pids03=$!
-ssh pi@node04.local "$@" 2>&1 > >(sed 's/^/node04: /') &
+ssh -o StrictHostKeyChecking=no pi@node04.local "$@" 2>&1 > >(sed 's/^/node04: /') &
 pids04=$!
-ssh pi@node05.local "$@" 2>&1 > >(sed 's/^/node05: /') &
+ssh -o StrictHostKeyChecking=no pi@node05.local "$@" 2>&1 > >(sed 's/^/node05: /') &
 pids05=$!
-ssh pi@node06.local "$@" 2>&1 > >(sed 's/^/node06: /') &
+ssh -o StrictHostKeyChecking=no pi@node06.local "$@" 2>&1 > >(sed 's/^/node06: /') &
 pids06=$!
-ssh pi@node07.local "$@" 2>&1 > >(sed 's/^/node07: /') &
+ssh -o StrictHostKeyChecking=no pi@node07.local "$@" 2>&1 > >(sed 's/^/node07: /') &
 pids07=$!
-ssh pi@node08.local "$@" 2>&1 > >(sed 's/^/node08: /') &
+ssh -o StrictHostKeyChecking=no pi@node08.local "$@" 2>&1 > >(sed 's/^/node08: /') &
 pids08=$!
-ssh pi@node09.local "$@" 2>&1 > >(sed 's/^/node09: /') &
+ssh -o StrictHostKeyChecking=no pi@node09.local "$@" 2>&1 > >(sed 's/^/node09: /') &
 pids09=$!
-ssh pi@node10.local "$@" 2>&1 > >(sed 's/^/node10: /') &
+ssh -o StrictHostKeyChecking=no pi@node10.local "$@" 2>&1 > >(sed 's/^/node10: /') &
 pids10=$!
-ssh pi@node11.local "$@" 2>&1 > >(sed 's/^/node11: /') &
+ssh -o StrictHostKeyChecking=no pi@node11.local "$@" 2>&1 > >(sed 's/^/node11: /') &
 pids11=$!
-ssh pi@node12.local "$@" 2>&1 > >(sed 's/^/node12: /') &
+ssh -o StrictHostKeyChecking=no pi@node12.local "$@" 2>&1 > >(sed 's/^/node12: /') &
 pids12=$!
-ssh pi@node00.local "$@" 2>&1 > >(sed 's/^/node00: /') &
+ssh -o StrictHostKeyChecking=no pi@node00.local "$@" 2>&1 > >(sed 's/^/node00: /') &
 pids00=$!
 
 wait $pid00

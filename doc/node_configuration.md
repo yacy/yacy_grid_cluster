@@ -79,7 +79,8 @@ If you repeat this with several nodes, you will probably get a
 ```
 This is correct and you must ignore host identification:
 ```
-sshpass -p raspberry ssh -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null pi@raspberrypi.local 'echo node00 | sudo tee /etc/hostname'
+sshpass -p raspberry ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no pi@raspberrypi.local 'echo node00 | sudo tee /etc/hostname && rm -Rf .ssh && mkdir .ssh && chmod 700 .ssh'
+sshpass -p raspberry scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ~/.ssh/id_rsa.pub pi@raspberrypi.local:~/.ssh/authorized_keys
 ```
 
 So the whole process to rename the hostname is:
