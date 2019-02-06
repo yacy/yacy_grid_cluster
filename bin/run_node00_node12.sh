@@ -1,31 +1,31 @@
 #! /bin/bash
 
 ssh -o StrictHostKeyChecking=no pi@node01.local "$@" 2>&1 > >(sed 's/^/node01: /') &
-pids01=$!
+pid01=$!
 ssh -o StrictHostKeyChecking=no pi@node02.local "$@" 2>&1 > >(sed 's/^/node02: /') &
-pids02=$!
+pid02=$!
 ssh -o StrictHostKeyChecking=no pi@node03.local "$@" 2>&1 > >(sed 's/^/node03: /') &
-pids03=$!
+pid03=$!
 ssh -o StrictHostKeyChecking=no pi@node04.local "$@" 2>&1 > >(sed 's/^/node04: /') &
-pids04=$!
+pid04=$!
 ssh -o StrictHostKeyChecking=no pi@node05.local "$@" 2>&1 > >(sed 's/^/node05: /') &
-pids05=$!
+pid05=$!
 ssh -o StrictHostKeyChecking=no pi@node06.local "$@" 2>&1 > >(sed 's/^/node06: /') &
-pids06=$!
+pid06=$!
 ssh -o StrictHostKeyChecking=no pi@node07.local "$@" 2>&1 > >(sed 's/^/node07: /') &
-pids07=$!
+pid07=$!
 ssh -o StrictHostKeyChecking=no pi@node08.local "$@" 2>&1 > >(sed 's/^/node08: /') &
-pids08=$!
+pid08=$!
 ssh -o StrictHostKeyChecking=no pi@node09.local "$@" 2>&1 > >(sed 's/^/node09: /') &
-pids09=$!
+pid09=$!
 ssh -o StrictHostKeyChecking=no pi@node10.local "$@" 2>&1 > >(sed 's/^/node10: /') &
-pids10=$!
+pid10=$!
 ssh -o StrictHostKeyChecking=no pi@node11.local "$@" 2>&1 > >(sed 's/^/node11: /') &
-pids11=$!
+pid11=$!
 ssh -o StrictHostKeyChecking=no pi@node12.local "$@" 2>&1 > >(sed 's/^/node12: /') &
-pids12=$!
+pid12=$!
 ssh -o StrictHostKeyChecking=no pi@node00.local "$@" 2>&1 > >(sed 's/^/node00: /') &
-pids00=$!
+pid00=$!
 
 wait $pid00
 echo node00 ready
