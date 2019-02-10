@@ -64,23 +64,9 @@ This must be done with all nodes.
 
 We will now change the host name from `raspberrypi` to `node00`:
 ```
-ssh pi@raspberrypi.local 'echo node00 | sudo tee /etc/hostname'
-ssh pi@raspberrypi.local 'shutdown -r now'
-```
-or without using the public key with the default password:
-```
-sshpass -p raspberry ssh pi@raspberrypi.local 'echo node00 | sudo tee /etc/hostname'
-```
-If you repeat this with several nodes, you will probably get a
-```
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-```
-This is correct and you must ignore host identification:
-```
 sshpass -p raspberry ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no pi@raspberrypi.local 'echo node00 | sudo tee /etc/hostname && rm -Rf .ssh && mkdir .ssh && chmod 700 .ssh'
 sshpass -p raspberry scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ~/.ssh/id_rsa.pub pi@raspberrypi.local:~/.ssh/authorized_keys
+sshpass -p raspberry ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no pi@raspberrypi.local 'sudo shutdown -r now'
 ```
 
 So the whole process to rename the hostname is:
