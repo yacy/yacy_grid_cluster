@@ -27,8 +27,6 @@ pids12=$!
 ssh -o StrictHostKeyChecking=no pi@node00.local "$@" 2>&1 > >(sed 's/^/node00: /') &
 pids00=$!
 
-wait $pid00
-echo node00 ready
 wait $pid01
 echo node01 ready
 wait $pid02
@@ -53,4 +51,6 @@ wait $pid11
 echo node11 ready
 wait $pid12
 echo node12 ready
+wait $pid00
+echo node00 ready
 echo finished "$@"
