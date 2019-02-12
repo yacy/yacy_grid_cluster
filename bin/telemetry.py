@@ -34,10 +34,10 @@ def getHostname():
     return hostname
 
 def getHostip():
-    ip = os.popen("ifconfig | grep inet | awk '/broadcast/ {print $2}'").readline().strip()
+    ip = os.popen("/sbin/ifconfig | grep inet | awk '/broadcast/ {print $2}'").readline().strip()
     if ip != "":
         return ip
-    ip = os.popen("ifconfig | grep inet | awk '/Bcast/ {print $2}'").readline().strip().split(':')[1]
+    ip = os.popen("/sbin/ifconfig | grep inet | awk '/Bcast/ {print $2}'").readline().strip().split(':')[1]
     return ip
 
 def getCPUtemperature():
