@@ -1,5 +1,5 @@
 [Unit]
-Description=Telemetry Service
+Description=Elasticsearch Service
 After=multi-user.target
 
 [Install]
@@ -7,7 +7,7 @@ WantedBy=multi-user.target
 
 [Service]
 Type=forking
-ExecStart=/home/pi/git/yacy_grid_mcp/data/apps/elasticsearch/bin/elasticsearch 2>&1 /var/log/elasticsearch.log
+ExecStart=/home/pi/elasticsearch/bin/elasticsearch 2>&1 /var/log/elasticsearch.log
 TimeoutSec=600
 Restart=on-failure
 RestartSec=5s
