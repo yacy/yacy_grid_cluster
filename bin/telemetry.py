@@ -21,15 +21,16 @@
 # finally all nodes must be restarted with
 # ./restart_node00_node12.sh
 
-import sys, getopt, json, os, datetime, psutil
+import sys, getopt, json, os, time, datetime, psutil
+from shutil import which
 from flask import Flask, request, jsonify, abort
 from flask_cors import CORS, cross_origin
 
 # tools to extract metrics
 def getHostname():
-    hostname = os.popen("cat /etc/hostname").readline().strip()
+    hostname = os.popen("hostname").readline().strip()
     if (hostname == ""):
-        hostname = os.popen("hostname").readline().strip()
+        hostname = os.popen("cat /etc/hostname").readline().strip()
     return hostname
 
 def getHostip():
@@ -47,28 +48,31 @@ def getCPUtemperature():
         return 0.0
 
 def getRAMinfo():
-    p = os.popen('free')
-    p.readline()
-    a = p.readline().split()[1:]
-    # free is not available on mac
-    if len(a) >= 6:
-        return a
-    else:
+    try:
         vm = psutil.virtual_memory()
         return [vm.total / 1024, vm.used / 1024, vm.free / 1024, 0, 0, vm.available / 1024]
+    except Exception as e:
+        p = os.popen('free')
+        p.readline()
+        a = p.readline().split()[1:]
+        # free is not available on mac
+        if len(a) >= 6:
+            return a
+        else:
+            return 0
         # total_kb, used_kb, free_kb, shared_kb, cache_kb, available_kb        
 
 def getCPUuse():
     #return float(os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip().replace(",","."))
     #return float(os.popen("grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'").readline().strip().replace(",",".")) 
     try:
-        return float(os.popen("mpstat | grep -A 5 \"%idle\" | tail -n 1 | awk -F \" \" '{print 100 -  $ 12}'a").readline().strip().replace(",","."))
-    except Exception as e:
         return float(os.popen("ps -A -o %cpu | awk '{s+=$1} END {print s}'").readline().strip().replace(",","."))
+    except Exception as e:
+        return float(os.popen("mpstat | grep -A 5 \"%idle\" | tail -n 1 | awk -F \" \" '{print 100 -  $ 12}'a").readline().strip().replace(",","."))
 
 def getCPUload():
     #return float(os.popen("top -n1 | head -1 | awk -F 'load average' '{print $2}' | awk '{print $2}'").readline().replace(",","").strip())
-    return os.popen("uptime | awk -F 'load average' '{print $2}' | awk '{print $2,$3,$4}'").readline().strip().split()
+    return os.popen("uptime | awk -F 'load average' '{print $2}' | sed 's/, / /g' | awk '{print $2,$3,$4}'").readline().strip().split()
 
 def getCPUfreq():
     try:
@@ -76,15 +80,22 @@ def getCPUfreq():
         return cpufreq
     except Exception as e:
         try:
-            return float(os.popen("lscpu | grep MHz | awk '{print $3}'").readline().strip())
-        except Exception as e:
             return psutil.cpu_freq().current
+        except Exception as e:
+            return float(os.popen("lscpu | grep MHz | awk '{print $3}'").readline().strip())
 
 def getCPUcount():
-    try:
-        return int(os.popen("nproc").readline().strip())
-    except Exception as e:
-        return int(os.popen("sysctl -n hw.ncpu").readline().strip())
+    if which("nproc") is None:
+        try:
+            return int(os.popen("sysctl -n hw.ncpu").readline().strip())
+        except Exception as e:
+            return 0
+    if which("sysctl") is None:
+        try:
+            return int(os.popen("nproc").readline().strip())
+        except Exception as e:
+            return 0
+    return 0
 
 def getDiskSpace():
     return os.popen("df -h / | tail -1").readline().strip().split()[1:5]
@@ -110,26 +121,34 @@ def getMetricsJson():
     ram_total = float(RAM_stats[0])
     ram_used = float(RAM_stats[1])
     ram_available = float(RAM_stats[5])
+    nowsec = int(round(time.time()))
+    nowtime = datetime.datetime.fromtimestamp(nowsec).strftime("%Y-%m-%dT%H:%M:%S") # we are using the "date_hour_minute_second" or "strict_date_hour_minute_second" format of elasticsearch as fornat for the date: yyyy-MM-dd'T'HH:mm:ss.
     return {
-        "timestamp":datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"), # we are using the "date_hour_minute_second" or "strict_date_hour_minute_second" format of elasticsearch as fornat for the date: yyyy-MM-dd'T'HH:mm:ss.
-        "host_name": getHostname(),
-        "host_ip": getHostip(),
-        "cpu_freq_mhz": cpufreq,
-        "cpu_temp_celsius" : getCPUtemperature(),
-        "cpu_load_1": float(cpuload[0].replace(",","")),
-        "cpu_load_5": float(cpuload[1].replace(",","")),
-        "cpu_load_15": float(cpuload[2].replace(",","")),
-        "cpu_usage_percent": getCPUuse(),
-        "cpu_count": getCPUcount(),
-        "ram_total_gb": round(ram_total / 1048576.0, 3),
-        "ram_used_gb": round(ram_used / 1048576.0, 3),
-        "ram_free_gb": round(float(RAM_stats[2]) / 1048576.0, 3),
-        "ram_available_gb": round(ram_available / 1048576.0, 3),
-        "ram_percent": int(100.0 * (ram_total - ram_available) / ram_total),
-        "disk_total_gb": parseXB2GB(DISK_stats[0]),
-        "disk_used_gb": parseXB2GB(DISK_stats[1]),
-        "disk_free_gb": parseXB2GB(DISK_stats[2]),
-        "disk_percent": int(DISK_stats[3].replace("%",""))
+        "when": nowsec,
+        "what": "telemetry-" + getHostname(),
+        "tags": ["telemetry"],
+        "time": nowtime,
+        "data": {
+            "host_name": getHostname(),
+            "host_ip": getHostip(),
+            "cpu_freq_mhz": cpufreq,
+            "cpu_temp_celsius" : getCPUtemperature(),
+            "cpu_load_1": float(cpuload[0].replace(",",".")),
+            "cpu_load_5": float(cpuload[1].replace(",",".")),
+            "cpu_load_15": float(cpuload[2].replace(",",".")),
+            "cpu_usage_percent": getCPUuse(),
+            "cpu_count": getCPUcount(),
+            "ram_total_gb": round(ram_total / 1048576.0, 3),
+            "ram_used_gb": round(ram_used / 1048576.0, 3),
+            "ram_free_gb": round(float(RAM_stats[2]) / 1048576.0, 3),
+            "ram_available_gb": round(ram_available / 1048576.0, 3),
+            "ram_percent": int(100.0 * (ram_total - ram_available) / ram_total),
+            "disk_total_gb": parseXB2GB(DISK_stats[0]),
+            "disk_used_gb": parseXB2GB(DISK_stats[1]),
+            "disk_free_gb": parseXB2GB(DISK_stats[2]),
+            "disk_percent": int(DISK_stats[3].replace("%","")),
+            "time": nowtime
+        }
     }
     
 app = Flask(__name__)
