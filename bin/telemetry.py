@@ -10,7 +10,7 @@
 # sudo systemctl enable telemetry.service
 
 # commands to do this in the YaCy Grid:
-# ./run_node00_node12.sh "sudo apt-get install -y python3-pip net-tools sysstat"
+# ./run_node00_node12.sh "sudo apt-get install -y python3 python3-pip net-tools sysstat"
 # ./run_node00_node12.sh "sudo pip3 install flask flask-cors psutil"
 # ./run_node00_node12.sh "mkdir git"
 # ./run_node00_node12.sh "sudo apt-get install -y git"
@@ -22,7 +22,6 @@
 # ./restart_node00_node12.sh
 
 import sys, getopt, json, os, time, datetime, psutil
-from shutil import which
 from flask import Flask, request, jsonify, abort
 from flask_cors import CORS, cross_origin
 
@@ -85,14 +84,14 @@ def getCPUfreq():
             return float(os.popen("lscpu | grep MHz | awk '{print $3}'").readline().strip())
 
 def getCPUcount():
-    if which("nproc") is None:
+    if os.path.isfile("/usr/bin/nproc") is True:
         try:
-            return int(os.popen("sysctl -n hw.ncpu").readline().strip())
+            return int(os.popen("/usr/bin/nproc").readline().strip())
         except Exception as e:
             return 0
-    if which("sysctl") is None:
+    if os.path.isfile("/sbin/sysctl") is True:
         try:
-            return int(os.popen("nproc").readline().strip())
+            return int(os.popen("/sbin/sysctl -n hw.ncpu").readline().strip())
         except Exception as e:
             return 0
     return 0
