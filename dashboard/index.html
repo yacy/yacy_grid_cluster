@@ -184,6 +184,26 @@
                 .then((response) => {if (response.ok) {return response.json();}})
                 .then((json) => {this.posts.push(json);})
                 .catch((error) => {console.log(error);});
+            fetch('http://controller.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://p1.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://p2.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://p3.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
+            fetch('http://p4.local:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
             fetch('http://raspberrypi.local:5055/status.json')
                 .then((response) => {if (response.ok) {return response.json();}})
                 .then((json) => {this.posts.push(json);})
