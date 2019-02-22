@@ -43,7 +43,7 @@ brew install https://raw.githubusercontent.com/kadwanev/bigboybrew/master/Librar
 ```
 You can now log into your Raspberry Pi with the command
 ```
-sshpass -p raspberry ssh pi@raspberrypi.local
+sshpass -p raspberry ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no pi@raspberrypi.local
 ```
 
 We do so for node `node00` and configure passwordless access for all other nodes in the cluster.
