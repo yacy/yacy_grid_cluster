@@ -1,11 +1,13 @@
 #!/usr/bin/python3
 
 # packages needed:
-# sudo apt-get install python3-pip net-tools sysstat
+# sudo apt-get install -y python3-pip net-tools sysstat
 # sudo pip3 install flask flask-cors psutil
 
 # to run this as systemd service, copy the file telemetry.service
-# into /lib/systemd/system/telemetry.service and do
+# into /lib/systemd/system/telemetry.service .. 
+# sudo cp ~/git/yacy_grid_cluster/bin/telemetry.service /lib/systemd/system/telemetry.service
+# .. and do
 # sudo systemctl daemon-reload
 # sudo systemctl enable telemetry.service
 
