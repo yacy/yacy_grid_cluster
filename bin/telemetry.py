@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # packages needed:
 # sudo apt-get install -y python3-pip net-tools sysstat
@@ -48,21 +48,6 @@ def getCPUtemperature():
     except Exception as e:
         return 0.0
 
-def getRAMinfo():
-    try:
-        vm = psutil.virtual_memory()
-        return [vm.total / 1024, vm.used / 1024, vm.free / 1024, 0, 0, vm.available / 1024]
-    except Exception as e:
-        p = os.popen('free')
-        p.readline()
-        a = p.readline().split()[1:]
-        # free is not available on mac
-        if len(a) >= 6:
-            return a
-        else:
-            return 0
-        # total_kb, used_kb, free_kb, shared_kb, cache_kb, available_kb        
-
 def getCPUuse():
     #return float(os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip().replace(",","."))
     #return float(os.popen("grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'").readline().strip().replace(",",".")) 
@@ -74,29 +59,6 @@ def getCPUuse():
 def getCPUload():
     #return float(os.popen("top -n1 | head -1 | awk -F 'load average' '{print $2}' | awk '{print $2}'").readline().replace(",","").strip())
     return os.popen("uptime | awk -F 'load average' '{print $2}' | sed 's/, / /g' | awk '{print $2,$3,$4}'").readline().strip().split()
-
-def getCPUfreq():
-    try:
-        cpufreq = float(os.popen("[ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq ] && cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq").readline().strip()) / 1000.0
-        return cpufreq
-    except Exception as e:
-        try:
-            return psutil.cpu_freq().current
-        except Exception as e:
-            return float(os.popen("lscpu | grep MHz | awk '{print $3}'").readline().strip())
-
-def getCPUcount():
-    if os.path.isfile("/usr/bin/nproc") is True:
-        try:
-            return int(os.popen("/usr/bin/nproc").readline().strip())
-        except Exception as e:
-            return 0
-    if os.path.isfile("/sbin/sysctl") is True:
-        try:
-            return int(os.popen("/sbin/sysctl -n hw.ncpu").readline().strip())
-        except Exception as e:
-            return 0
-    return 0
 
 def getDiskSpace():
     return os.popen("df -h / | tail -1").readline().strip().split()[1:5]
@@ -115,41 +77,52 @@ def parseXB2GB(space):
     return 0.0
         
 def getMetricsJson():
-    cpufreq = getCPUfreq() # do this first to prevent that other tasks cause overclocking
+    cpufreq = psutil.cpu_freq() # do this first to prevent that other tasks cause overclocking
+    cpufreq_current = cpufreq.current
+    cpufreq_min = cpufreq.min
+    cpufreq_max = cpufreq.max
+    cputemp = getCPUtemperature()
     cpuload = getCPUload()
-    RAM_stats = getRAMinfo()
+    cpuuse  = getCPUuse()
+    cpuload0 = float(cpuload[0].replace(",","."))
+    cpuload1 = float(cpuload[1].replace(",","."))
+    cpuload2 = float(cpuload[2].replace(",","."))
+    vm = psutil.virtual_memory()
+    RAM_stats = [vm.total / 1024, vm.used / 1024, vm.free / 1024, 0, 0, vm.available / 1024]
     DISK_stats = getDiskSpace()
     ram_total = float(RAM_stats[0])
     ram_used = float(RAM_stats[1])
     ram_available = float(RAM_stats[5])
     nowsec = int(round(time.time()))
     nowtime = datetime.datetime.fromtimestamp(nowsec).strftime("%Y-%m-%dT%H:%M:%S") # we are using the "date_hour_minute_second" or "strict_date_hour_minute_second" format of elasticsearch as fornat for the date: yyyy-MM-dd'T'HH:mm:ss.
+    # we try to stick to the Elasticsearch ECS field naming
+    # see https://www.elastic.co/guide/en/ecs/master/ecs-field-reference.html
     return {
-        "when": nowsec,
-        "what": "telemetry-" + getHostname(),
-        "tags": ["telemetry"],
-        "time": nowtime,
-        "data": {
-            "host_name": getHostname(),
-            "host_ip": getHostip(),
-            "cpu_freq_mhz": cpufreq,
-            "cpu_temp_celsius" : getCPUtemperature(),
-            "cpu_load_1": float(cpuload[0].replace(",",".")),
-            "cpu_load_5": float(cpuload[1].replace(",",".")),
-            "cpu_load_15": float(cpuload[2].replace(",",".")),
-            "cpu_usage_percent": getCPUuse(),
-            "cpu_count": getCPUcount(),
-            "ram_total_gb": round(ram_total / 1048576.0, 3),
-            "ram_used_gb": round(ram_used / 1048576.0, 3),
-            "ram_free_gb": round(float(RAM_stats[2]) / 1048576.0, 3),
-            "ram_available_gb": round(ram_available / 1048576.0, 3),
-            "ram_percent": int(100.0 * (ram_total - ram_available) / ram_total),
-            "disk_total_gb": parseXB2GB(DISK_stats[0]),
-            "disk_used_gb": parseXB2GB(DISK_stats[1]),
-            "disk_free_gb": parseXB2GB(DISK_stats[2]),
-            "disk_percent": int(DISK_stats[3].replace("%","")),
-            "time": nowtime
-        }
+        "@timestamp": nowtime,
+        "unixtime": nowsec,
+        "message": "CPU load " + str(cpuload0) + ", " + str(cpuuse) + "%, " + str(cpufreq_current) + " MHz, " + str(cputemp) + " Celsius",
+        "agent.type": "telemetry",
+        "agent.id": getHostip() + "/" + getHostname(),
+        "host.ip": getHostip(),
+        "host.name": getHostname(),
+        "cpu.cores": psutil.cpu_count(),
+        "cpu.freq_current_mhz": cpufreq_current,
+        "cpu.freq_min_mhz": cpufreq_min,
+        "cpu.freq_max_mhz": cpufreq_max,
+        "cpu.temp_celsius" : cputemp,
+        "cpu.load_1": cpuload0,
+        "cpu.load_5": cpuload1,
+        "cpu.load_15": cpuload2,
+        "cpu.usage_percent": cpuuse,
+        "ram.total_gb": round(ram_total / 1048576.0, 3),
+        "ram.used_gb": round(ram_used / 1048576.0, 3),
+        "ram.free_gb": round(float(RAM_stats[2]) / 1048576.0, 3),
+        "ram.available_gb": round(ram_available / 1048576.0, 3),
+        "ram.percent": int(100.0 * (ram_total - ram_available) / ram_total),
+        "disk.total_gb": parseXB2GB(DISK_stats[0]),
+        "disk.used_gb": parseXB2GB(DISK_stats[1]),
+        "disk.free_gb": parseXB2GB(DISK_stats[2]),
+        "disk.percent": int(DISK_stats[3].replace("%",""))
     }
     
 app = Flask(__name__)
