@@ -1,41 +1,58 @@
 #! /bin/bash
 
 ssh -o StrictHostKeyChecking=no pi@node01 "$@" 2>&1 > >(sed 's/^/node01: /') &
-pids01=$!
+pid01=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node02 "$@" 2>&1 > >(sed 's/^/node02: /') &
-pids02=$!
+pid02=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node03 "$@" 2>&1 > >(sed 's/^/node03: /') &
-pids03=$!
+pid03=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node04 "$@" 2>&1 > >(sed 's/^/node04: /') &
-pids04=$!
+pid04=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node05 "$@" 2>&1 > >(sed 's/^/node05: /') &
-pids05=$!
+pid05=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node06 "$@" 2>&1 > >(sed 's/^/node06: /') &
-pids06=$!
+pid06=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node07 "$@" 2>&1 > >(sed 's/^/node07: /') &
-pids07=$!
+pid07=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node08 "$@" 2>&1 > >(sed 's/^/node08: /') &
-pids08=$!
+pid08=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node09 "$@" 2>&1 > >(sed 's/^/node09: /') &
-pids09=$!
+pid09=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node10 "$@" 2>&1 > >(sed 's/^/node10: /') &
-pids10=$!
+pid10=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node11 "$@" 2>&1 > >(sed 's/^/node11: /') &
-pids11=$!
+pid11=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node12 "$@" 2>&1 > >(sed 's/^/node12: /') &
-pids12=$!
+pid12=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node13 "$@" 2>&1 > >(sed 's/^/node13: /') &
-pids13=$!
+pid13=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node14 "$@" 2>&1 > >(sed 's/^/node14: /') &
-pids14=$!
+pid14=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node15 "$@" 2>&1 > >(sed 's/^/node15: /') &
-pids15=$!
+pid15=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node16 "$@" 2>&1 > >(sed 's/^/node16: /') &
-pids16=$!
+pid16=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node17 "$@" 2>&1 > >(sed 's/^/node17: /') &
-pids17=$!
+pid17=$!
+sleep 0.2
 ssh -o StrictHostKeyChecking=no pi@node00 "$@" 2>&1 > >(sed 's/^/node00: /') &
-pids00=$!
+pid00=$!
 
 wait $pid01
 echo node01 ready
