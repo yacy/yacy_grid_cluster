@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # packages needed:
-# sudo apt-get install -y python3-pip net-tools sysstat
+# sudo apt-get install -y python3-pip net-tools sysstat git
 # sudo pip3 install flask flask-cors psutil
 
 # to run this as systemd service, copy the file telemetry.service
@@ -12,16 +12,18 @@
 # sudo systemctl enable telemetry.service
 
 # commands to do this in the YaCy Grid:
-# ./run_node00_node12.sh "sudo apt-get install -y python3 python3-pip net-tools sysstat"
+# ./run_node00_node12.sh "sudo apt-get install -y python3 python3-pip net-tools sysstat git"
 # ./run_node00_node12.sh "sudo pip3 install flask flask-cors psutil"
-# ./run_node00_node12.sh "mkdir git"
-# ./run_node00_node12.sh "sudo apt-get install -y git"
-# ./run_node00_node12.sh "cd git && git clone https://github.com/yacy/yacy_grid_cluster.git"
+# ./run_node00_node12.sh "mkdir git && cd git && git clone https://github.com/yacy/yacy_grid_cluster.git"
 # ./run_node00_node12.sh "sudo cp git/yacy_grid_cluster/bin/telemetry.service /lib/systemd/system/"
 # ./run_node00_node12.sh "sudo systemctl daemon-reload"
 # ./run_node00_node12.sh "sudo systemctl enable telemetry.service"
 # finally all nodes must be restarted with
-# ./restart_node00_node12.sh
+# ./restart_node00_node17.sh
+#
+# Test this:
+# curl localhost:5055/status.json
+
 
 import sys, getopt, json, os, time, datetime, psutil
 from flask import Flask, request, jsonify, abort
