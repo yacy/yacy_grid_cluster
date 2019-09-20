@@ -67,25 +67,25 @@
                 </thead>
                 <tbody>
 		  <tr v-for='post in posts'>
-		    <td><span class="nowrap">{{post.data.time}}</span></td>
-		    <td>{{post.data.host_name}}</td>
-		    <td>{{post.data.host_ip}}</td>
-		    <td>{{post.data.cpu_count}}</td>
-		    <td>{{post.data.cpu_freq_mhz}}</td>
-		    <td>{{post.data.cpu_temp_celsius}}</td>
-		    <td>{{post.data.cpu_load_1}}</td>
-		    <td>{{post.data.cpu_load_5}}</td>
-		    <td>{{post.data.cpu_load_15}}</td>
-		    <td>{{post.data.cpu_usage_percent}}</td>
-		    <td>{{post.data.disk_total_gb}}</td>
-		    <td>{{post.data.disk_free_gb}}</td>
-		    <td>{{post.data.disk_used_gb}}</td>
-		    <td>{{post.data.disk_percent}}%</td>
-		    <td>{{post.data.ram_total_gb}}</td>
-		    <td>{{post.data.ram_free_gb}}</td>
-		    <td>{{post.data.ram_available_gb}}</td>
-		    <td>{{post.data.ram_used_gb}}</td>
-		    <td>{{post.data.ram_percent}}</td>
+		    <td><span class="nowrap">{{post.timestamp}}</span></td>
+		    <td>{{post.host_name}}</td>
+		    <td>{{post.host_ip}}</td>
+		    <td>{{post.cpu_count}}</td>
+		    <td>{{post.cpu_freq_mhz}}</td>
+		    <td>{{post.cpu_temp_celsius}}</td>
+		    <td>{{post.cpu_load_1}}</td>
+		    <td>{{post.cpu_load_5}}</td>
+		    <td>{{post.cpu_load_15}}</td>
+		    <td>{{post.cpu_usage_percent}}</td>
+		    <td>{{post.disk_total_gb}}</td>
+		    <td>{{post.disk_free_gb}}</td>
+		    <td>{{post.disk_used_gb}}</td>
+		    <td>{{post.disk_percent}}%</td>
+		    <td>{{post.ram_total_gb}}</td>
+		    <td>{{post.ram_free_gb}}</td>
+		    <td>{{post.ram_available_gb}}</td>
+		    <td>{{post.ram_used_gb}}</td>
+		    <td>{{post.ram_percent}}</td>
 		  </tr>
                 </tbody>
               </table>
@@ -112,6 +112,10 @@
             posts: []
         },
         created() {
+            fetch('http://localhost:5055/status.json')
+                .then((response) => {if (response.ok) {return response.json();}})
+                .then((json) => {this.posts.push(json);})
+                .catch((error) => {console.log(error);});
             fetch('http://node00.local:5055/status.json')
                 .then((response) => {if (response.ok) {return response.json();}})
                 .then((json) => {this.posts.push(json);})
