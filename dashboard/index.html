@@ -43,8 +43,9 @@
 		    <th colspan="7" class="table-danger">CPU</th>
 		    <th colspan="4" class="table-secondary">Disk</th>
 		    <th colspan="5" class="table-primary">RAM</th>
+		    <th colspan="3" class="table-primary">Docker</th>
 		  </tr>
-                  <tr>
+                  <tr style="font-size: smaller">
 		    <th class="table-warning">Name</th>
 		    <th class="table-warning">IP</th>
 		    <th class="table-danger">Count</th>
@@ -63,6 +64,9 @@
                     <th class="table-primary">Avail GB</th>
                     <th class="table-primary">Used GB</th>
                     <th class="table-primary">%</th>
+                    <th class="table-primary">Images</th>
+                    <th class="table-primary">All Container</th>
+                    <th class="table-primary">Running Container</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -86,6 +90,9 @@
 		    <td>{{post.ram_available_gb}}</td>
 		    <td>{{post.ram_used_gb}}</td>
 		    <td>{{post.ram_percent}}</td>
+		    <td>{{post.docker_images}}</td>
+		    <td>{{post.docker_all_container}}</td>
+		    <td>{{post.docker_running_container}}</td>
 		  </tr>
                 </tbody>
               </table>
