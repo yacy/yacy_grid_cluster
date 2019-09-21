@@ -77,7 +77,16 @@ def parseXB2GB(space):
     if (space.endswith("B")): return float(space[:-1].replace(",",".")) / 1024.0 / 1024.0 / 1024.0
     if (space.endswith("Bi")): return float(space[:-2].replace(",",".")) / 1024.0 / 1024.0 / 1024.0
     return 0.0
-        
+
+def getDockerImages():
+    return os.popen("docker images | grep -v REPOSITORY | wc -l").readline().strip()
+def getRunningDockerContainer():
+    return os.popen("docker ps | grep -v CONTAINER | wc -l").readline().strip()
+def getAllDockerContainer():
+    return os.popen("docker ps -a | grep -v CONTAINER | wc -l").readline().strip()
+
+
+
 def getMetricsJson():
     cpufreq = psutil.cpu_freq() # do this first to prevent that other tasks cause overclocking
     cpufreq_current = cpufreq.current
@@ -97,6 +106,7 @@ def getMetricsJson():
     ram_available = float(RAM_stats[5])
     nowsec = int(round(time.time()))
     nowtime = datetime.datetime.fromtimestamp(nowsec).strftime("%Y-%m-%dT%H:%M:%S") # we are using the "date_hour_minute_second" or "strict_date_hour_minute_second" format of elasticsearch as fornat for the date: yyyy-MM-dd'T'HH:mm:ss.
+
     # we try to stick to the Elasticsearch ECS field naming
     # see https://www.elastic.co/guide/en/ecs/master/ecs-field-reference.html
     return {
@@ -123,6 +133,10 @@ def getMetricsJson():
         "ram_available_gb": round(ram_available / 1048576.0, 3),
         "ram_used_gb": round(ram_used / 1048576.0, 3),
         "ram_percent": int(100.0 * (ram_total - ram_available) / ram_total),
+        "docker_images": getDockerImages(),
+        "docker_all_container": getAllDockerContainer(),
+        "docker_running_container": getRunningDockerContainer(),
+        
         "message": "CPU load " + str(cpuload0) + ", " + str(cpuuse) + "%, " + str(cpufreq_current) + " MHz, " + str(cputemp) + " Celsius",
         "agent_type": "telemetry",
         "agent_id": getHostip() + "/" + getHostname()
