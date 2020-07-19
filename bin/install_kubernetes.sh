@@ -7,22 +7,34 @@ sudo dphys-swapfile swapoff
 sudo dphys-swapfile uninstall
 sudo update-rc.d dphys-swapfile remove
 
+# install cgroupd driver for docker
+cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+# prepare file system
+sudo rm -Rf /var/lib/etcd/*
+
 # install kubeadm, kubelet and kubectl
-curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/arm/{kubeadm,kubelet,kubectl}
-chmod +x {kubeadm,kubelet,kubectl}
-sudo mv {kubeadm,kubelet,kubectl} /usr/bin/
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
 
-# install systemd service
-curl -L --remote-name-all https://raw.githubusercontent.com/kubernetes/kubernetes/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/build/debs/{kubelet.service,10-kubeadm.conf}
-sudo mkdir -p /etc/systemd/system/kubelet.service.d
-sudo mv 10-kubeadm.conf /etc/systemd/system/kubelet.service.d/
-sudo mv kubelet.service /etc/systemd/system/
+#mkdir -p ~/.kube
+#sudo cp -i /etc/kubernetes/admin.conf ~/.kube/config
+#sudo chown $(id -u):$(id -g) ~/.kube/config
 
-# enable service
-sudo systemctl enable --now kubelet
-sudo kubeadm init
-mkdir -p ~/.kube
-sudo cp -i /etc/kubernetes/admin.conf ~/.kube/config
-sudo chown $(id -u):$(id -g) ~/.kube/config
-#kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
-#kubectl proxy --address='0.0.0.0' --accept-hosts='.*'
