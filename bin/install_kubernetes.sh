@@ -1,3 +1,7 @@
+# Append the cgroups and swap options to the kernel command line
+# Note the space before "cgroup_enable=cpuset", to add a space after the last existing item on the line
+#$ sudo sed -i '$ s/$/ cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1 swapaccount=1/' /boot/cmdline.txt
+
 # clean up
 sudo apt -y remove aufs-dkms
 sudo apt -y autoremove
@@ -20,6 +24,13 @@ cat <<EOF | sudo tee /etc/docker/daemon.json
 EOF
 sudo systemctl daemon-reload
 sudo systemctl restart docker
+
+# Enable net.bridge.bridge-nf-call-iptables and -iptables6
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sudo sysctl --system
 
 # prepare file system
 sudo rm -Rf /var/lib/etcd/*
