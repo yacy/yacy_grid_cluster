@@ -32,8 +32,15 @@ net.bridge.bridge-nf-call-iptables = 1
 EOF
 sudo sysctl --system
 
-# prepare file system
+# clean up
+sudo service kubelet stop
+sudo rm -Rf /var/lib/kubelet/sudo rm -Rf /etc/systemd/system/kubelet.service.d
+sudo rm -Rf /lib/systemd/system/kubelet.service
+sudo systemctl daemon-reload
+sudo systemctl reset-failed
+sudo rm -Rf /etc/kubernetes
 sudo rm -Rf /var/lib/etcd/*
+sudo apt-get -y remove kubelet kubeadm kubectl
 
 # install kubeadm, kubelet and kubectl
 sudo apt-get update && sudo apt-get install -y apt-transport-https curl
