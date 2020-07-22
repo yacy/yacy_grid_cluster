@@ -52,7 +52,9 @@ sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
-#mkdir -p ~/.kube
-#sudo cp -i /etc/kubernetes/admin.conf ~/.kube/config
-#sudo chown $(id -u):$(id -g) ~/.kube/config
-
+# to start a cluster, run
+#   kubeadm init
+# and afterwards:
+#   mkdir -p $HOME/.kube
+#   sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+#   sudo chown $(id -u):$(id -g) $HOME/.kube/config
